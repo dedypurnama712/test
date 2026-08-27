@@ -1,4 +1,4 @@
-DevOps Technical Test
+## DevOps Technical Test
 
 Go application demonstrating application versioning, Docker containerization,
 zero-image-rebuild binary deployment, rollback, and Jenkins CI/CD.
