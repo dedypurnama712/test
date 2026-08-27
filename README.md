@@ -1,9 +1,9 @@
-## DevOps Technical Test
+# DevOps Technical Test
 
 Go application demonstrating application versioning, Docker containerization,
 zero-image-rebuild binary deployment, rollback, and Jenkins CI/CD.
 
-1. Application Overview
+## 1. Application Overview
 
 This project is a simple Go HTTP application.
 
@@ -18,9 +18,11 @@ Example response:
 
 Application version is injected during build using Go `-ldflags`.
 
-Part I - Application and Docker
+---
 
-Version Injection
+# Part I - Application and Docker
+
+## Version Injection
 
 The application defines:
 
@@ -42,7 +44,7 @@ The resulting application reports:
 
     Hello, DevOps! version=460bd1a
 
-Build the Application
+## Build the Application
 
 Run:
 
@@ -56,7 +58,7 @@ Build a Linux binary:
     -ldflags="-s -w -X main.version=1.0.1" \
     -o app .
 
-Build Docker Image
+## Build Docker Image
 
 Run:
 
@@ -75,7 +77,9 @@ Verify:
 
     curl http://localhost:8080/health
 
-Part II - Replace Binary Without Rebuilding the Image
+---
+
+# Part II - Replace Binary Without Rebuilding the Image
 
 The deployment mechanism replaces the running application binary inside
 the existing container without rebuilding the Docker image.
@@ -96,7 +100,7 @@ The process is:
 8. Restart the container.
 9. Perform another health check to verify rollback.
 
-Deploy Manually
+## Deploy Manually
 
 Build the deployment binary:
 
@@ -114,7 +118,7 @@ Run:
 
     ./deploy.sh
 
-Rollback
+## Rollback
 
 Before replacing the binary, the existing `/app/app` binary is backed up.
 
@@ -126,7 +130,9 @@ The container is then restarted and the health endpoint is checked again.
 
 If rollback succeeds, the previous working binary remains active.
 
-Part III - CI/CD with Jenkins
+---
+
+# Part III - CI/CD with Jenkins
 
 The Jenkins pipeline is defined in:
 
@@ -142,7 +148,7 @@ The pipeline contains the following stages:
 6. Deploy
 7. Verify
 
-Checkout
+## Checkout
 
 Jenkins checks out the source code from:
 
@@ -150,7 +156,7 @@ Jenkins checks out the source code from:
 
 The pipeline uses the `main` branch.
 
-Test
+## Test
 
 The pipeline runs:
 
@@ -159,7 +165,7 @@ The pipeline runs:
 If the tests fail, Jenkins stops the pipeline and does not continue to
 Build Image or Deploy stages.
 
-Build Binary
+## Build Binary
 
 The pipeline obtains the Git commit hash:
 
@@ -173,7 +179,7 @@ The resulting binary is:
 
     app-hotfix
 
-Build Image
+## Build Image
 
 The Docker image is tagged using the Git commit hash:
 
@@ -187,7 +193,7 @@ The Docker build receives the same version through:
 
     --build-arg VERSION=${VERSION}
 
-Push
+## Push
 
 No external container registry is configured for this technical test.
 
@@ -196,7 +202,7 @@ credential would be used if a registry were available.
 
 No registry password or secret is hardcoded in the Jenkinsfile.
 
-Deploy
+## Deploy
 
 The Deploy stage automatically executes:
 
@@ -207,7 +213,7 @@ application binary without rebuilding the running container image.
 
 Jenkins has Docker access through the Jenkins Docker environment.
 
-Verify
+## Verify
 
 After deployment Jenkins performs:
 
@@ -215,7 +221,9 @@ After deployment Jenkins performs:
 
 A non-zero response causes the pipeline to fail.
 
-Jenkins Credentials
+---
+
+# Jenkins Credentials
 
 Secrets must not be hardcoded in the Jenkinsfile.
 
@@ -225,7 +233,9 @@ where credentials are required.
 Credential values are stored in Jenkins and injected into the pipeline
 only at runtime.
 
-Pipeline Failure Handling
+---
+
+# Pipeline Failure Handling
 
 The pipeline uses sequential stages.
 
@@ -239,7 +249,9 @@ failed and subsequent Build Image and Deploy stages are not executed.
 The Deploy stage also returns a non-zero exit code when deployment fails
 or when rollback is triggered.
 
-Rollback Strategy
+---
+
+# Rollback Strategy
 
 The deployment process protects the currently running version before
 replacing it.
@@ -279,7 +291,9 @@ Deployment flow:
 This allows the application to return to the previous working binary
 without rebuilding the Docker image.
 
-Evidence
+---
+
+# Evidence
 
 Successful Jenkins pipeline evidence includes all required stages:
 
@@ -297,7 +311,9 @@ Evidence screenshots are stored in:
 
     evidence/
 
-Files
+---
+
+# Files
 
 | File | Description |
 |------|-------------|
@@ -310,7 +326,9 @@ Files
 | `go.mod` | Go module definition |
 | `README.md` | Project documentation |
 
-Quick Start
+---
+
+# Quick Start
 
 Run tests:
 
@@ -335,7 +353,9 @@ Deploy a new binary:
     chmod +x deploy.sh
     ./deploy.sh
 
-Technical Test Result
+---
+
+# Technical Test Result
 
 The project demonstrates:
 
