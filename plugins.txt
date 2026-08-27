@@ -1,0 +1,6 @@
+cloudbees-folder
+workflow-aggregator
+git
+credentials-binding
+github
+pipeline-stage-view
