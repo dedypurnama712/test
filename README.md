@@ -276,35 +276,37 @@ replacing it. There are two recovery paths:
 
 Verified health-check failure flow:
 
-    Current Binary
-         |
-         v
-      Backup
-         |
-         v
-    New Binary
-         |
-         v
-      Restart
-         |
-         v
-    Health Check
-       /     \
-     OK       FAIL
-     |          |
-     v          v
-  Success    Restore Backup
-                 |
-                 v
-              Restart
-                 |
-                 v
-           Health Check
-              /    \
-            OK      FAIL
-            |         |
-            v         v
-       Rollback OK  Critical Failure
+```text
+Current Binary
+      |
+      v
+    Backup
+      |
+      v
+ New Binary
+      |
+      v
+    Restart
+      |
+      v
+ Health Check
+     /     \
+  OK       FAIL
+  |          |
+  v          v
+Success   Restore Backup
+                    |
+                    v
+                Restart
+                    |
+                    v
+            Health Check
+                /    \
+             OK      FAIL
+             |         |
+             v         v
+      Rollback OK  Critical Failure
+```
 
 This allows the application to return to the previous working binary without
 rebuilding the Docker image. A successful rollback still causes the Deploy
