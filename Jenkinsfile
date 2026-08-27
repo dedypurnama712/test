@@ -16,6 +16,7 @@ pipeline {
 
         stage('Test') {
             steps {
+                echo 'Running Go tests...'
                 sh 'go test ./...'
             }
         }
@@ -27,6 +28,8 @@ pipeline {
                         script: 'git rev-parse --short HEAD',
                         returnStdout: true
                     ).trim()
+
+                    echo "Building application version: ${env.VERSION}"
 
                     sh """
                         CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
@@ -43,42 +46,58 @@ pipeline {
             steps {
                 sh """
                     docker build \
-                      --build-arg VERSION=${VERSION} \
-                      -t ${IMAGE_NAME}:${VERSION} .
+                    --build-arg VERSION=${VERSION} \
+                    -t ${IMAGE_NAME}:${VERSION} .
                 """
             }
         }
 
         stage('Push') {
             steps {
-                echo 'Push stage simulated because no registry is configured.'
+                echo 'No container registry configured.'
+                echo 'Push stage simulated as permitted by the technical test.'
+                echo "Image ready: ${IMAGE_NAME}:${VERSION}"
             }
         }
 
         stage('Deploy') {
             steps {
-                sh """
-                    docker cp app-hotfix ${APP_CONTAINER}:/app/app
-                    docker restart ${APP_CONTAINER}
-                """
+                echo 'Deploying binary without rebuilding container image...'
+
+                sh '''
+                    chmod +x deploy.sh
+                    ./deploy.sh
+                '''
             }
         }
 
         stage('Verify') {
             steps {
-                sh 'sleep 2'
-                sh 'curl -f http://host.docker.internal:8080'
+                sh '''
+                    sleep 2
+                    curl -f http://host.docker.internal:8080/health
+                '''
             }
         }
     }
 
     post {
         success {
-            echo 'Pipeline completed successfully.'
+            echo '========================================'
+            echo 'PIPELINE SUCCESS'
+            echo 'All stages completed successfully.'
+            echo '========================================'
         }
 
         failure {
-            echo 'Pipeline FAILED.'
+            echo '========================================'
+            echo 'PIPELINE FAILED'
+            echo 'Build/Test/Deploy failed.'
+            echo '========================================'
+        }
+
+        always {
+            echo "Build version: ${env.VERSION ?: 'N/A'}"
         }
     }
 }
