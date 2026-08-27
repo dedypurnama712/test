@@ -83,17 +83,13 @@ pipeline {
 
     post {
         success {
-            echo '========================================'
             echo 'PIPELINE SUCCESS'
             echo 'All stages completed successfully.'
-            echo '========================================'
         }
 
         failure {
-            echo '========================================'
             echo 'PIPELINE FAILED'
             echo 'Build/Test/Deploy failed.'
-            echo '========================================'
         }
 
         always {
