@@ -96,9 +96,9 @@ The process is:
 4. Restart the container.
 5. Perform a health check.
 6. If the health check succeeds, deployment is successful.
-7. If deployment fails, restore the previous binary.
-8. Restart the container.
-9. Perform another health check to verify rollback.
+7. If copying or restarting fails, restore the backup and restart the container.
+8. If the health check fails, restore the backup, restart the container, and
+    verify that the previous version is healthy.
 
 ## Deploy Manually
 
@@ -122,13 +122,25 @@ Run:
 
 Before replacing the binary, the existing `/app/app` binary is backed up.
 
-If the new binary fails the health check, the backup is restored:
+If copying the new binary or restarting the container fails, the script makes
+an immediate restore attempt using the backup:
+
+    docker cp "$BACKUP_PATH" "$CONTAINER_NAME:$BINARY_PATH"
+
+The container is then restarted. The script exits with a failure status after
+this recovery attempt.
+
+If the new binary starts but fails the health check, the backup is restored:
 
     docker cp "$BACKUP_PATH" "$CONTAINER_NAME:$BINARY_PATH"
 
 The container is then restarted and the health endpoint is checked again.
+This is the verified rollback path.
 
-If rollback succeeds, the previous working binary remains active.
+If the second health check succeeds, the previous working binary remains
+active and the script exits with status `1` to mark the deployment as failed.
+If restoring, restarting, or validating the previous version fails, the
+script exits with status `2` and reports a critical rollback failure.
 
 ---
 
@@ -254,9 +266,15 @@ or when rollback is triggered.
 # Rollback Strategy
 
 The deployment process protects the currently running version before
-replacing it.
+replacing it. There are two recovery paths:
 
-Deployment flow:
+- **Operational failure:** copy or restart fails. The backup is restored and
+    the container is restarted. No second health check is performed.
+- **Health-check failure:** the new binary starts but is unhealthy. The backup
+    is restored, the container is restarted, and the previous version is checked
+    again.
+
+Verified health-check failure flow:
 
     Current Binary
          |
@@ -288,8 +306,9 @@ Deployment flow:
             v         v
        Rollback OK  Critical Failure
 
-This allows the application to return to the previous working binary
-without rebuilding the Docker image.
+This allows the application to return to the previous working binary without
+rebuilding the Docker image. A successful rollback still causes the Deploy
+stage to fail, because the requested version was not deployed.
 
 ---
 
